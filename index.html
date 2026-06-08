@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vitrine</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --ink: #1a1410;
+    --accent: #c8502a;
+    --muted: #9e9183;
+    --card: #fdfaf5;
+    --border: #ddd5c4;
+    --tag: #ede6d8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 3rem 4rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .brand span { color: var(--accent); }
+
+  .header-meta {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+  }
+
+  /* ── GRID ── */
+  main {
+    padding: 3rem 4rem 5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(26,20,16,0.12);
+    z-index: 2;
+  }
+
+  .card-img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    background: var(--tag);
+  }
+
+  .card-img-placeholder {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: var(--tag);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 2.5rem;
+  }
+
+  .card-body {
+    padding: 1.4rem 1.4rem 1.2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .card-name {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .card-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.55;
+    flex: 1;
+  }
+
+  .card-footer {
+    padding: 0 1.4rem 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .price {
+    font-family: 'Fraunces', serif;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  .btn-buy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--ink);
+    color: #fdfaf5;
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.65rem 1.1rem;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-buy:hover {
+    background: var(--accent);
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 6rem 2rem;
+    color: var(--muted);
+  }
+
+  .empty .icon { font-size: 3rem; margin-bottom: 1rem; }
+  .empty p { font-family: 'Fraunces', serif; font-size: 1.4rem; font-style: italic; }
+
+  /* ── EDIT PANEL ── */
+  .fab {
+    display: none;
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,20,16,0.5);
+    z-index: 200;
+    backdrop-filter: blur(2px);
+  }
+
+  .overlay.open { display: block; }
+
+  .panel {
+    position: fixed;
+    top: 0;
+    right: -520px;
+    width: min(520px, 100vw);
+    height: 100dvh;
+    background: var(--card);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.35s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+  }
+
+  .panel.open { right: 0; }
+
+  .panel-header {
+    padding: 1.6rem 1.8rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .panel-close {
+    background: none;
+    border: 1px solid var(--border);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+
+  .panel-close:hover { background: var(--tag); }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.6rem 1.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  /* Product list inside panel */
+  .panel-product {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 0.9rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .panel-product:hover { border-color: var(--ink); }
+  .panel-product.active { border-color: var(--accent); background: #fdf0eb; }
+
+  .panel-product-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    background: var(--tag);
+    flex-shrink: 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+  }
+
+  .panel-product-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .panel-product-info { flex: 1; min-width: 0; }
+  .panel-product-info strong { font-size: 0.88rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .panel-product-info span { font-size: 0.75rem; color: var(--muted); }
+
+  .panel-product-del {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.2rem;
+    line-height: 1;
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .panel-product-del:hover { color: var(--accent); }
+
+  /* Form */
+  .form-section {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .form-section-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+  }
+
+  label { font-size: 0.8rem; font-weight: 500; display: block; margin-bottom: 0.25rem; }
+
+  input, textarea {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.75rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus, textarea:focus { border-color: var(--ink); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .btn-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    flex: 1;
+    background: var(--ink);
+    color: #fdfaf5;
+    border: none;
+    padding: 0.75rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-primary:hover { background: var(--accent); }
+
+  .btn-secondary {
+    background: none;
+    color: var(--ink);
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-secondary:hover { background: var(--tag); }
+
+  .divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 0.4rem 0;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 5.5rem;
+    right: 2rem;
+    background: var(--ink);
+    color: #fdfaf5;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    z-index: 400;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── IMPORT ── */
+  .import-drop {
+    border: 2px dashed var(--border);
+    padding: 1.4rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .import-drop:hover, .import-drop.drag-over {
+    border-color: var(--ink);
+    background: var(--tag);
+  }
+
+  .import-drop-icon { font-size: 1.8rem; margin-bottom: 0.4rem; }
+
+  .import-drop-text {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .import-drop-text span {
+    text-decoration: underline;
+    color: var(--ink);
+  }
+
+  .import-mode-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .import-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    overflow: hidden;
+  }
+
+  .import-preview-table th {
+    background: var(--tag);
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .import-preview-table td {
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+
+  .import-preview-table tr:last-child td { border-bottom: none; }
+
+  .import-info {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .import-info strong { color: var(--ink); }
+
+  code {
+    background: var(--tag);
+    padding: 0.1rem 0.3rem;
+    font-size: 0.75rem;
+    font-family: monospace;
+  }
+
+  /* ── counter badge ── */
+  .count-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fdfaf5;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+
+  @media (max-width: 640px) {
+    header, main { padding-left: 1.4rem; padding-right: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand">Vi<span>trine</span></div>
+    <div class="header-meta" id="subtitle">Produtos em destaque</div>
+  </div>
+  <div class="header-meta" id="count-label"></div>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<!-- FAB -->
+<button class="fab" id="fab-btn" title="Gerenciar produtos">✦</button>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Side Panel -->
+<div class="panel" id="panel">
+  <div class="panel-header">
+    <span class="panel-title">Gerenciar Produtos</span>
+    <button class="panel-close" id="panel-close">✕</button>
+  </div>
+  <div class="panel-body" id="panel-body">
+    <!-- dynamically filled -->
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'vitrine_products_v1';
+
+  // ── Default products ──────────────────────────────────────────────
+  const defaultProducts = [
+    {
+      id: 1,
+      name: 'Camiseta Clássica',
+      desc: 'Algodão premium 100%, corte relaxado. Disponível em diversas cores.',
+      price: 'R$ 89,90',
+      img: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&q=80',
+      link: '#'
+    },
+    {
+      id: 2,
+      name: 'Tênis Urban',
+      desc: 'Solado vulcanizado, couro sintético resistente. Ideal para o dia a dia.',
+      price: 'R$ 249,00',
+      img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80',
+      link: '#'
+    },
+    {
+      id: 3,
+      name: 'Mochila Minimalista',
+      desc: 'Compartimento para notebook 15", impermeável, alças ajustáveis.',
+      price: 'R$ 179,90',
+      img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80',
+      link: '#'
+    },
+    {
+      id: 4,
+      name: 'Caneca Artesanal',
+      desc: 'Cerâmica de alta temperatura, pintada à mão. 350ml.',
+      price: 'R$ 59,00',
+      img: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=600&q=80',
+      link: '#'
+    },
+    {
+      id: 5,
+      name: 'Caderno Capa Dura',
+      desc: 'Papel off-white 90g, pautado, 200 páginas. Capa em couro vegano.',
+      price: 'R$ 74,90',
+      img: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=600&q=80',
+      link: '#'
+    },
+    {
+      id: 6,
+      name: 'Óculos Retrô',
+      desc: 'Armação acetato, lentes polarizadas UV400. Inclui estojo.',
+      price: 'R$ 195,00',
+      img: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80',
+      link: '#'
+    }
+  ];
+
+  // ── State ─────────────────────────────────────────────────────────
+  let products = load();
+  let editing = null; // id being edited
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return defaultProducts.map(p => ({...p}));
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  }
+
+  function nextId() {
+    return products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+  }
+
+  // ── Render Grid ───────────────────────────────────────────────────
+  function renderGrid() {
+    const grid = document.getElementById('grid');
+    const label = document.getElementById('count-label');
+    grid.innerHTML = '';
+
+    if (!products.length) {
+      grid.innerHTML = `<div class="empty"><div class="icon">📦</div><p>Nenhum produto ainda. Adicione o primeiro!</p></div>`;
+      label.textContent = '';
+      return;
+    }
+
+    label.textContent = products.length + (products.length === 1 ? ' produto' : ' produtos');
+
+    products.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        ${p.img
+          ? `<img class="card-img" src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy">`
+          : `<div class="card-img-placeholder">🖼️</div>`
+        }
+        <div class="card-body">
+          <div class="card-name">${esc(p.name)}</div>
+          <div class="card-desc">${esc(p.desc)}</div>
+        </div>
+        <div class="card-footer">
+          <div class="price">${esc(p.price)}</div>
+          <a class="btn-buy" href="${esc(p.link)}" target="_blank" rel="noopener">
+            Comprar →
+          </a>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  // ── Render Panel ──────────────────────────────────────────────────
+  function renderPanel() {
+    const body = document.getElementById('panel-body');
+
+    const listHTML = products.map(p => `
+      <div class="panel-product ${editing === p.id ? 'active' : ''}" data-id="${p.id}">
+        <div class="panel-product-thumb">
+          ${p.img ? `<img src="${esc(p.img)}" alt="">` : '🖼️'}
+        </div>
+        <div class="panel-product-info">
+          <strong>${esc(p.name)}</strong>
+          <span>${esc(p.price)}</span>
+        </div>
+        <button class="panel-product-del" data-del="${p.id}" title="Remover">✕</button>
+      </div>
+    `).join('');
+
+    const current = editing !== null ? products.find(p => p.id === editing) : null;
+
+    body.innerHTML = `
+      <!-- Product list -->
+      <div>
+        <div class="form-section-title">Produtos${products.length ? `<span class="count-badge">${products.length}</span>` : ''}</div>
+        ${listHTML || '<p style="font-size:.82rem;color:var(--muted)">Nenhum produto ainda.</p>'}
+      </div>
+
+      <hr class="divider">
+
+      <!-- Import -->
+      <div class="form-section">
+        <div class="form-section-title">↑ Importar produtos</div>
+        <p style="font-size:.78rem;color:var(--muted);line-height:1.5">
+          Aceita <strong>.xlsx</strong>, <strong>.csv</strong> ou <strong>.json</strong>.<br>
+          Colunas esperadas: <code>name</code>, <code>desc</code>, <code>price</code>, <code>img</code>, <code>link</code>
+        </p>
+        <div class="import-drop" id="import-drop">
+          <div class="import-drop-icon">📂</div>
+          <div class="import-drop-text">Arraste o arquivo aqui<br><span>ou clique para selecionar</span></div>
+          <input type="file" id="import-file" accept=".xlsx,.csv,.json" style="display:none">
+        </div>
+        <div class="import-mode-row">
+          <label style="margin:0;display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.8rem">
+            <input type="radio" name="import-mode" value="replace" checked> Substituir todos os produtos
+          </label>
+          <label style="margin:0;display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.8rem">
+            <input type="radio" name="import-mode" value="append"> Adicionar aos existentes
+          </label>
+        </div>
+        <div id="import-preview" style="display:none"></div>
+        <div class="btn-row">
+          <button class="btn-primary" id="btn-import-confirm" style="display:none">Confirmar importação</button>
+          <button class="btn-secondary" id="btn-import-cancel" style="display:none">Cancelar</button>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Form -->
+      <div class="form-section">
+        <div class="form-section-title">${current ? '✎ Editar produto' : '+ Novo produto'}</div>
+
+        <div>
+          <label for="f-name">Nome *</label>
+          <input id="f-name" type="text" placeholder="Nome do produto" value="${current ? esc(current.name) : ''}">
+        </div>
+
+        <div>
+          <label for="f-desc">Descrição</label>
+          <textarea id="f-desc" placeholder="Descrição breve...">${current ? esc(current.desc) : ''}</textarea>
+        </div>
+
+        <div>
+          <label for="f-price">Preço *</label>
+          <input id="f-price" type="text" placeholder="R$ 0,00" value="${current ? esc(current.price) : ''}">
+        </div>
+
+        <div>
+          <label for="f-img">URL da imagem</label>
+          <input id="f-img" type="url" placeholder="https://..." value="${current ? esc(current.img) : ''}">
+        </div>
+
+        <div>
+          <label for="f-link">Link de compra *</label>
+          <input id="f-link" type="url" placeholder="https://loja.com/produto" value="${current ? esc(current.link) : ''}">
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" id="btn-save">${current ? 'Salvar alterações' : 'Adicionar produto'}</button>
+          ${current ? `<button class="btn-secondary" id="btn-cancel">Cancelar</button>` : ''}
+        </div>
+      </div>
+    `;
+
+    // Events inside panel
+    body.querySelectorAll('.panel-product[data-id]').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('[data-del]')) return;
+        editing = parseInt(el.dataset.id);
+        renderPanel();
+      });
+    });
+
+    body.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = parseInt(btn.dataset.del);
+        if (confirm('Remover este produto?')) {
+          products = products.filter(p => p.id !== id);
+          if (editing === id) editing = null;
+          save();
+          renderGrid();
+          renderPanel();
+          toast('Produto removido');
+        }
+      });
+    });
+
+    document.getElementById('btn-save').addEventListener('click', () => {
+      const name  = document.getElementById('f-name').value.trim();
+      const desc  = document.getElementById('f-desc').value.trim();
+      const price = document.getElementById('f-price').value.trim();
+      const img   = document.getElementById('f-img').value.trim();
+      const link  = document.getElementById('f-link').value.trim();
+
+      if (!name || !price || !link) {
+        toast('Preencha nome, preço e link ✕');
+        return;
+      }
+
+      if (editing !== null) {
+        const idx = products.findIndex(p => p.id === editing);
+        if (idx >= 0) products[idx] = { id: editing, name, desc, price, img, link };
+        editing = null;
+        toast('Produto atualizado ✓');
+      } else {
+        products.push({ id: nextId(), name, desc, price, img, link });
+        toast('Produto adicionado ✓');
+      }
+
+      save();
+      renderGrid();
+      renderPanel();
+    });
+
+    const btnCancel = document.getElementById('btn-cancel');
+    if (btnCancel) btnCancel.addEventListener('click', () => { editing = null; renderPanel(); });
+
+    // ── Import wiring ──
+    wireImport();
+  }
+
+  // ── Import logic ──────────────────────────────────────────────────
+  let importedData = [];
+
+  function wireImport() {
+    const drop   = document.getElementById('import-drop');
+    const input  = document.getElementById('import-file');
+    if (!drop || !input) return;
+
+    drop.addEventListener('click', () => input.click());
+
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault();
+      drop.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleImportFile(file);
+    });
+
+    input.addEventListener('change', () => {
+      if (input.files[0]) handleImportFile(input.files[0]);
+      input.value = '';
+    });
+
+    document.getElementById('btn-import-confirm').addEventListener('click', confirmImport);
+    document.getElementById('btn-import-cancel').addEventListener('click', cancelImport);
+  }
+
+  function handleImportFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'json') {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const raw = JSON.parse(e.target.result);
+          const arr = Array.isArray(raw) ? raw : (raw.products || raw.data || Object.values(raw));
+          importedData = normalizeRows(arr);
+          showImportPreview(file.name, importedData);
+        } catch { toast('JSON inválido ✕'); }
+      };
+      reader.readAsText(file);
+    } else if (ext === 'csv') {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          importedData = normalizeRows(parseCSV(e.target.result));
+          showImportPreview(file.name, importedData);
+        } catch { toast('CSV inválido ✕'); }
+      };
+      reader.readAsText(file);
+    } else if (ext === 'xlsx') {
+      loadSheetJS(() => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          try {
+            const wb = XLSX.read(e.target.result, { type: 'array' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+            importedData = normalizeRows(rows);
+            showImportPreview(file.name, importedData);
+          } catch(err) { toast('XLSX inválido ✕'); }
+        };
+        reader.readAsArrayBuffer(file);
+      });
+    } else {
+      toast('Formato não suportado. Use .xlsx, .csv ou .json');
+    }
+  }
+
+  let sheetJSLoaded = false;
+  function loadSheetJS(cb) {
+    if (sheetJSLoaded) { cb(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = () => { sheetJSLoaded = true; cb(); };
+    s.onerror = () => toast('Erro ao carregar leitor de XLSX ✕');
+    document.head.appendChild(s);
+  }
+
+  function normalizeRows(rows) {
+    const MAP = { nome: 'name', name: 'name', produto: 'name', descripcion: 'desc',
+      descricao: 'desc', desc: 'desc', description: 'desc', descricão: 'desc',
+      preco: 'price', preço: 'price', price: 'price', valor: 'price',
+      imagem: 'img', img: 'img', image: 'img', foto: 'img',
+      link: 'link', url: 'link', compra: 'link' };
+
+    return rows.map((row, i) => {
+      const out = { id: nextId() + i, name: '', desc: '', price: '', img: '', link: '' };
+      Object.entries(row).forEach(([k, v]) => {
+        const key = MAP[k.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')];
+        if (key) out[key] = String(v ?? '').trim();
+      });
+      return out;
+    }).filter(p => p.name);
+  }
+
+  function showImportPreview(filename, rows) {
+    const preview = document.getElementById('import-preview');
+    const btnOk   = document.getElementById('btn-import-confirm');
+    const btnNo   = document.getElementById('btn-import-cancel');
+
+    if (!rows.length) { toast('Nenhum produto encontrado no arquivo ✕'); return; }
+
+    const sample = rows.slice(0, 4);
+    const more   = rows.length > 4 ? `<p class="import-info" style="margin-top:.4rem">…e mais ${rows.length - 4} produto(s)</p>` : '';
+
+    preview.style.display = 'block';
+    preview.innerHTML = `
+      <p class="import-info"><strong>${rows.length} produto(s)</strong> encontrado(s) em <strong>${filename}</strong></p>
+      <div style="overflow-x:auto">
+        <table class="import-preview-table">
+          <thead><tr><th>Nome</th><th>Preço</th><th>Link</th></tr></thead>
+          <tbody>
+            ${sample.map(p => `<tr><td>${esc(p.name)}</td><td>${esc(p.price)}</td><td>${esc(p.link) || '<em style="color:var(--muted)">—</em>'}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${more}
+    `;
+    btnOk.style.display = 'block';
+    btnNo.style.display = 'block';
+    btnOk.textContent = `Confirmar importação (${rows.length})`;
+  }
+
+  function confirmImport() {
+    const mode = document.querySelector('input[name="import-mode"]:checked')?.value || 'replace';
+    if (mode === 'replace') {
+      products = importedData.map((p, i) => ({ ...p, id: i + 1 }));
+    } else {
+      const base = nextId();
+      importedData.forEach((p, i) => products.push({ ...p, id: base + i }));
+    }
+    importedData = [];
+    save();
+    renderGrid();
+    cancelImport();
+    toast(`${products.length} produto(s) importado(s) ✓`);
+  }
+
+  function cancelImport() {
+    importedData = [];
+    const preview = document.getElementById('import-preview');
+    const btnOk   = document.getElementById('btn-import-confirm');
+    const btnNo   = document.getElementById('btn-import-cancel');
+    if (preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
+    if (btnOk) btnOk.style.display = 'none';
+    if (btnNo) btnNo.style.display = 'none';
+    const input = document.getElementById('import-file');
+    if (input) input.value = '';
+  }
+
+  // ── CSV parser (RFC 4180) ─────────────────────────────────────────
+  function parseCSV(text) {
+    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+    if (lines.length < 2) return [];
+    const headers = splitCSVLine(lines[0]);
+    return lines.slice(1).map(line => {
+      const vals = splitCSVLine(line);
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = vals[i] ?? ''; });
+      return obj;
+    });
+  }
+
+  function splitCSVLine(line) {
+    const result = []; let cur = ''; let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if ((c === ',' || c === ';') && !inQ) { result.push(cur.trim()); cur = ''; }
+      else { cur += c; }
+    }
+    result.push(cur.trim());
+    return result;
+  }
+
+  // ── Panel open/close ──────────────────────────────────────────────
+  function openPanel() {
+    editing = null;
+    renderPanel();
+    document.getElementById('panel').classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+  }
+
+  function closePanel() {
+    document.getElementById('panel').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+  }
+
+  document.getElementById('fab-btn').addEventListener('click', openPanel);
+
+  // Secret shortcut: Ctrl + Shift + A
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+      e.preventDefault();
+      openPanel();
+    }
+  });
+  document.getElementById('panel-close').addEventListener('click', closePanel);
+  document.getElementById('overlay').addEventListener('click', closePanel);
+
+  // ── Toast ─────────────────────────────────────────────────────────
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────
+  renderGrid();
+</script>
+</body>
+</html>
